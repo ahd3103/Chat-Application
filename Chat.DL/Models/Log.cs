@@ -12,8 +12,10 @@ namespace Chat.DL.Models
     { 
         public string IpAddress { get; set; }
         public string RequestPath { get; set; }
+        public string RequestBody { get; set; }
         public string Message { get; set; }
         public string Username { get; set; }
+        public string Level { get; set; }
         public DateTime Timestamp { get; set; }
     }
 }

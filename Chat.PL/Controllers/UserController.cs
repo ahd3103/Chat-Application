@@ -1,6 +1,8 @@
 ﻿using Chat.BL.DTOs;
 using Chat.BL.Servies;
 using Chat.DL.Models;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -134,6 +136,16 @@ namespace Chat.PL.Controllers
             return tokenString;
         }
 
-       
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("GoogleLogin")]
+        public IActionResult GoogleLogin()
+        {
+            string redirectUrl = Url.Action("GoogleResponse", "Account");
+            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
     }
 }

@@ -22,51 +22,6 @@ namespace Chat.DL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Chat.DL.Models.LogEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("IPAddress")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("exception")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("level")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("message_template")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("properties")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("raise_date")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LogEntries");
-                });
-
             modelBuilder.Entity("Chat.DL.Models.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -95,7 +50,7 @@ namespace Chat.DL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("Chat.DL.Models.User", b =>
@@ -121,7 +76,7 @@ namespace Chat.DL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Chat.DL.Models.Message", b =>

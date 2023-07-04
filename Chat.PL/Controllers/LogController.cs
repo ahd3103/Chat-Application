@@ -41,43 +41,6 @@ namespace Chat.PL.Controllers
             return Ok(logs);
         }
 
-        //private List<LogEntry> FetchLogsFromPostgreSQL(DateTime startTime, DateTime endTime)
-        //{
-        //    var connectionString = _configuration.GetConnectionString("DefaultConnection");
-        //    //var connectionString = _configuration["\"ConnectionStrings\": {\r\n    \"DefaultConnection\": \"User ID=postgres;Password=Ahd@3103;Host=localhost;Port=5432;Database=ChatApplicationDb;Pooling=true;\""];
-        //    var query = "SELECT * FROM Logs WHERE raise_date >= @StartTime AND raise_date <= @EndTime";
-
-        //    using (var connection = new NpgsqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-
-        //        using (var command = new NpgsqlCommand(query, connection))
-        //        {
-        //            command.Parameters.AddWithValue("StartTime", startTime);
-        //            command.Parameters.AddWithValue("EndTime", endTime);
-
-        //            using (var reader = command.ExecuteReader())
-        //            {
-        //                var logs = new List<LogEntry>();
-
-        //                while (reader.Read())
-        //                {
-        //                    var logEntry = new LogEntry
-        //                    {
-        //                        Message = reader.GetString(reader.GetOrdinal("message")),
-        //                        //Level = reader.GetString(reader.GetOrdinal("level")),
-        //                        // Map other log properties accordingly
-        //                    };
-
-        //                    logs.Add(logEntry);
-        //                }
-
-        //                return logs;
-        //            }
-        //        }
-        //    }
-        //}
-
         private List<Log> FetchLogsFromPostgreSQL(DateTime startTime, DateTime endTime)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
@@ -100,8 +63,8 @@ namespace Chat.PL.Controllers
                         {
                             var logEntry = new Log
                             {
-                                Message = reader.GetString(reader.GetOrdinal("Message")),
-                                Timestamp = reader.GetDateTime(reader.GetOrdinal("Timestamp")),
+                                Message = reader.GetString(reader.GetOrdinal("message")),
+                                Level = reader.GetString(reader.GetOrdinal("level")),
                                 // Map other log properties accordingly
                             };
 
@@ -113,6 +76,42 @@ namespace Chat.PL.Controllers
                 }
             }
         }
+
+        //private List<Log> FetchLogsFromPostgreSQL(DateTime startTime, DateTime endTime)
+        //{
+        //    var connectionString = _configuration.GetConnectionString("DefaultConnection");
+        //    var query = "SELECT * FROM Logs WHERE timestamp >= @StartTime AND timestamp <= @EndTime";
+
+        //    using (var connection = new NpgsqlConnection(connectionString))
+        //    {
+        //        connection.Open();
+
+        //        using (var command = new NpgsqlCommand(query, connection))
+        //        {
+        //            command.Parameters.AddWithValue("StartTime", startTime);
+        //            command.Parameters.AddWithValue("EndTime", endTime);
+
+        //            using (var reader = command.ExecuteReader())
+        //            {
+        //                var logs = new List<Log>();
+
+        //                while (reader.Read())
+        //                {
+        //                    var logEntry = new Log
+        //                    {
+        //                        Message = reader.GetString(reader.GetOrdinal("Message")),
+        //                        Timestamp = reader.GetDateTime(reader.GetOrdinal("Timestamp")),
+        //                        // Map other log properties accordingly
+        //                    };
+
+        //                    logs.Add(logEntry);
+        //                }
+
+        //                return logs;
+        //            }
+        //        }
+        //    }
+        //}
 
     }
 }

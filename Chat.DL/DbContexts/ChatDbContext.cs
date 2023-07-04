@@ -16,11 +16,11 @@ namespace Chat.DL.DbContexts
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
-        public DbSet<Log> LogEntries { get; set; }
-        public override int SaveChanges()
-        {
-            return base.SaveChanges();
-        }
+        public DbSet<Log> Logs { get; set; }
+        //public override int SaveChanges()
+        //{
+        //    return base.SaveChanges();
+        //}
 
 
 

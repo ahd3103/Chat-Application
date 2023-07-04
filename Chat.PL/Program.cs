@@ -22,6 +22,7 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+
 builder.Services.AddScoped<IRepository<Message>, Repository<Message>>();
 builder.Services.AddScoped<IRepository<User>, Repository<User>>();
 //builder.Services.AddScoped<IRepository<LogEntry>, Repository<LogEntry>>();
