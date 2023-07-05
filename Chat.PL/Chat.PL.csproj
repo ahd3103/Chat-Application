@@ -34,8 +34,4 @@
     <ProjectReference Include="..\Chat.DL\Chat.DL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\" />
-  </ItemGroup>
-
 </Project>

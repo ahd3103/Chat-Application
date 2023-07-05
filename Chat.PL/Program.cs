@@ -8,11 +8,7 @@ using Chat.BL.Servies;
 using Chat.DL.DbContexts;
 using Chat.DL.Models;
 using Chat.DL.Repostiory;
-using Microsoft.AspNetCore.Identity;
-using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.PostgreSQL;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,12 +18,17 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+// Add the ChatDbContext as a scoped service
+builder.Services.AddScoped<ChatDbContext>();
 
-builder.Services.AddScoped<IRepository<Message>, Repository<Message>>();
-builder.Services.AddScoped<IRepository<User>, Repository<User>>();
-//builder.Services.AddScoped<IRepository<LogEntry>, Repository<LogEntry>>();
-builder.Services.AddTransient<IMessageService, MessageService>();
-builder.Services.AddTransient<IUserService, UserRepository>();
+
+builder.Services.TryAddScoped(typeof(IRepository<>), typeof(Repository<>)); 
+builder.Services.TryAddScoped<IRepository<Message>, Repository<Message>>();
+builder.Services.TryAddScoped<IRepository<User>, Repository<User>>();
+builder.Services.TryAddScoped<IRepository<Log>, Repository<Log>>(); 
+builder.Services.TryAddScoped<IMessageService, MessageService>();
+builder.Services.TryAddScoped<IUserService, UserRepository>();
+builder.Services.TryAddScoped<ILogService, LogService>();
 
 
 // Adding Authentication
@@ -45,7 +46,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = true,
         ValidateIssuerSigningKey = true,
         ValidateAudience = true,
-        ClockSkew = TimeSpan.Zero,
+        //ClockSkew = TimeSpan.Zero,
         ValidAudience = builder.Configuration["JWT:Audience"],
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
@@ -89,41 +90,17 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 
-builder.Host.UseSerilog((context, config) =>
-{
-    config.WriteTo.PostgreSQL(
-        connectionString: "User ID=postgres;Password=Ahd@3103;Host=localhost;Port=5432;Database=ChatApplicationDb;Pooling=true;",
-        tableName: "logs",
-        needAutoCreateTable: true,
-         columnOptions: new Dictionary<string, ColumnWriterBase>
-         {
-             ["message"] = new RenderedMessageColumnWriter(),
-             ["message_template"] = new MessageTemplateColumnWriter(),
-             ["level"] = new LevelColumnWriter(),
-             ["raise_date"] = new TimestampColumnWriter(),
-             ["exception"] = new ExceptionColumnWriter(),
-             ["properties"] = new LogEventSerializedColumnWriter()
-         }
-         ).MinimumLevel.Information()
-          .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
-          .MinimumLevel.Override("System", LogEventLevel.Error);
-
-    if (context.HostingEnvironment.IsProduction() == false)
-    {
-        config.WriteTo.Console().MinimumLevel.Information();
-
-    }
-});
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+} 
 
-app.UseMiddleware<TokenValidationMiddleware>();
+
+app.UseMiddleware(typeof(TokenValidationMiddleware));
+///app.UseMiddleware(typeof(RequestLoggingMiddleware)); 
 
 app.UseRouting();
 

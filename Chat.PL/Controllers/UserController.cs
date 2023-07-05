@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Serilog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Newtonsoft.Json;
 //using static Chat.BL.Helper.RequestLoggingMiddlewareExtensions;
 
 namespace Chat.PL.Controllers
@@ -20,30 +20,37 @@ namespace Chat.PL.Controllers
     {
         private readonly IUserService _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly ILogService _logService;
 
-
-        public UserController(IUserService userRepository, IConfiguration configuration)
+        public UserController(IUserService userRepository, IConfiguration configuration, ILogService logService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
-            
-
+            _logService = logService;
         }
         [Authorize]
         [HttpGet]
         [Route("/api/users")]
         public async Task<IActionResult> GetAll()
         {
-            Serilog.Log.Information("This is to test serilogs");
-            Serilog.Log.Warning("This is to test serilogs");
-            Serilog.Log.Error("Get All information");
-            
+
             var users = await _userRepository.GetAll();
             var response = users.Select(user => new UserResponse
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email
+            });
+
+            await _logService.AddLogs(new Log
+            {
+                IpAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString(),
+                RequestPath = "GetAll User",
+                RequestBody = JsonConvert.SerializeObject(response),
+                Message = "User GetAll",
+                Timestamp = DateTime.UtcNow,
+                Level = "info",
+                Username = User.Identity.Name
             });
 
             return Ok(response);
@@ -61,6 +68,8 @@ namespace Chat.PL.Controllers
                 };
                 return BadRequest(errorResponse);
             }
+
+
 
             var existingUser = await _userRepository.GetByEmail(user.Email);
             if (existingUser != null)
@@ -114,6 +123,9 @@ namespace Chat.PL.Controllers
 
             }
         }
+
+
+
 
         private string GenerateJwtToken(Guid userId)
         {

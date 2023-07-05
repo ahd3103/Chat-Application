@@ -1,23 +1,19 @@
 ﻿using Chat.DL.DbContexts;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
+ 
 using Chat.DL.Models;
 using System.Text;
-using System.Threading.Tasks;
+using Chat.BL.Servies;
 
 public class RequestLoggingMiddleware
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<RequestLoggingMiddleware> _logger;
-    private readonly ChatDbContext _dbContext;
+    private readonly RequestDelegate _next;  
+    private readonly ILogService _logService;
 
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger, ChatDbContext dbContext)
+    public RequestLoggingMiddleware(RequestDelegate next,   ILogService logService)
     {
-        _next = next;
-        _logger = logger;
-        _dbContext = dbContext;
+        _next = next;  
+        _logService = logService;
     }
 
     public async Task Invoke(HttpContext context)
@@ -70,10 +66,7 @@ public class RequestLoggingMiddleware
         // You can use any logging framework such as Serilog, NLog, or log directly to a file or database
 
         string logMessage = $"IP: {ipAddress} | Request Path: {requestPath} | Request Body: {requestBody} | Username: {username} | Time: {DateTime.UtcNow}";
-
-        // Example: Logging to the console
-        _logger.LogInformation(logMessage);
-
+         
         // Save the log to the Logs table using your preferred ORM or database access method
         var log = new Log
         {
@@ -81,10 +74,13 @@ public class RequestLoggingMiddleware
             RequestPath = requestPath,
             RequestBody = requestBody,
             Username = username,
-            //Time = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow
         };
 
-        _dbContext.Logs.Add(log);
-        _dbContext.SaveChanges();
+        _logService.AddLogs(log); 
     }
+
+      
 }
+
+

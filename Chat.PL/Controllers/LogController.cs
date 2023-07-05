@@ -3,24 +3,29 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+//using Serilog;
 
 namespace Chat.PL.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Route("api/log")]
     public class LogController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<RequestLoggingMiddleware> _logger;
+        private readonly RequestLoggingMiddleware _requestLoggingMiddleware;
 
 
-        public LogController(IConfiguration configuration)
+        public LogController(IConfiguration configuration, ILogger<RequestLoggingMiddleware> logger, RequestLoggingMiddleware requestLoggingMiddleware)
         {
             _configuration = configuration;
+            _logger = logger;
+            _requestLoggingMiddleware = requestLoggingMiddleware;
         }
-
         [HttpGet]
-        public IActionResult GetLogs(DateTime? startTime = null, DateTime? endTime = null)
+        [Route("GetLogs")]
+        public IActionResult GetLogs(DateTime startTime, DateTime endTime)
         {
             // Validate request parameters
             if (startTime == null)
@@ -33,14 +38,13 @@ namespace Chat.PL.Controllers
                 return BadRequest("Invalid request parameters. StartTime must be before EndTime.");
 
             // Fetch logs from PostgreSQL
-            var logs = FetchLogsFromPostgreSQL(startTime.Value, endTime.Value);
+            var logs = FetchLogsFromPostgreSQL(startTime, endTime);
 
             if (logs == null || logs.Count == 0)
                 return NotFound("No logs found.");
 
             return Ok(logs);
         }
-
         private List<Log> FetchLogsFromPostgreSQL(DateTime startTime, DateTime endTime)
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
@@ -76,43 +80,6 @@ namespace Chat.PL.Controllers
                 }
             }
         }
-
-        //private List<Log> FetchLogsFromPostgreSQL(DateTime startTime, DateTime endTime)
-        //{
-        //    var connectionString = _configuration.GetConnectionString("DefaultConnection");
-        //    var query = "SELECT * FROM Logs WHERE timestamp >= @StartTime AND timestamp <= @EndTime";
-
-        //    using (var connection = new NpgsqlConnection(connectionString))
-        //    {
-        //        connection.Open();
-
-        //        using (var command = new NpgsqlCommand(query, connection))
-        //        {
-        //            command.Parameters.AddWithValue("StartTime", startTime);
-        //            command.Parameters.AddWithValue("EndTime", endTime);
-
-        //            using (var reader = command.ExecuteReader())
-        //            {
-        //                var logs = new List<Log>();
-
-        //                while (reader.Read())
-        //                {
-        //                    var logEntry = new Log
-        //                    {
-        //                        Message = reader.GetString(reader.GetOrdinal("Message")),
-        //                        Timestamp = reader.GetDateTime(reader.GetOrdinal("Timestamp")),
-        //                        // Map other log properties accordingly
-        //                    };
-
-        //                    logs.Add(logEntry);
-        //                }
-
-        //                return logs;
-        //            }
-        //        }
-        //    }
-        //}
-
     }
 }
 

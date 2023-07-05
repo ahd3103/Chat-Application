@@ -39,15 +39,15 @@ namespace Chat.PL.Controllers
             var sender = User.Identity.Name;
             var timestamp = DateTime.UtcNow;
 
-           // Validation logic for receiver and message
+            // Validation logic for receiver and message
             if (string.IsNullOrEmpty(receiver) || string.IsNullOrEmpty(message))
-                {
-                    return BadRequest();
-                }
+            {
+                return BadRequest();
+            }
 
             try
             {
-               // Save the message to the database
+                // Save the message to the database
                 var chatMessage = new Message
                 {
                     SenderId = sender,
@@ -68,6 +68,7 @@ namespace Chat.PL.Controllers
                 return BadRequest();
             }
         }
+
 
         [HttpPut("messages/{messageId}")]
         public async Task<IActionResult> EditMessage(string messageId, [FromBody] string content)

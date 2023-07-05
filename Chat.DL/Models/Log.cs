@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Chat.DL.Models
 {
-    public class Log:BaseEntity
-    { 
+    public class Log : BaseEntity
+    {
         public string IpAddress { get; set; }
         public string RequestPath { get; set; }
         public string RequestBody { get; set; }
