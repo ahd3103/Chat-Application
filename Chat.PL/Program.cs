@@ -1,14 +1,14 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
-using System.Text;
 using Chat.BL.Helper;
 using Chat.BL.Servies;
 using Chat.DL.DbContexts;
 using Chat.DL.Models;
 using Chat.DL.Repostiory;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,11 +24,10 @@ builder.Services.AddScoped<ChatDbContext>();
 
 builder.Services.TryAddScoped(typeof(IRepository<>), typeof(Repository<>)); 
 builder.Services.TryAddScoped<IRepository<Message>, Repository<Message>>();
-builder.Services.TryAddScoped<IRepository<User>, Repository<User>>();
-builder.Services.TryAddScoped<IRepository<Log>, Repository<Log>>(); 
+builder.Services.TryAddScoped<IRepository<User>, Repository<User>>(); 
 builder.Services.TryAddScoped<IMessageService, MessageService>();
 builder.Services.TryAddScoped<IUserService, UserRepository>();
-builder.Services.TryAddScoped<ILogService, LogService>();
+
 
 
 // Adding Authentication
@@ -95,12 +94,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI();
-} 
+}
 
 
-app.UseMiddleware(typeof(TokenValidationMiddleware));
-///app.UseMiddleware(typeof(RequestLoggingMiddleware)); 
+app.UseMiddleware<TokenValidationMiddleware>();
+app.UseRequestLoggingMiddleware();
+ 
 
 app.UseRouting();
 

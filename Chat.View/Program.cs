@@ -15,13 +15,12 @@ builder.Services.Configure<DataProtectionTokenProviderOptions>(opts => opts.Toke
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddAuthentication()
-        .AddGoogle(opts =>
-        {
-            opts.ClientId = "117798141181-s4o63n2nqiv0kqt5k8ub9rt34u4bbaqf.apps.googleusercontent.com";
-            opts.ClientSecret = "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";
-            opts.SignInScheme = IdentityConstants.ExternalScheme;
-        });
-
+          .AddGoogle(opts =>
+          {
+              opts.ClientId = builder.Configuration["Google:client_id"];
+              opts.ClientSecret = builder.Configuration["Google:client_secret"];
+              opts.SignInScheme = IdentityConstants.ExternalScheme;
+          });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -1,86 +1,85 @@
-﻿using Chat.DL.DbContexts;
+﻿using Chat.BL.DTOs;
 using Microsoft.AspNetCore.Http;
- 
-using Chat.DL.Models;
+using Microsoft.Extensions.Logging;
 using System.Text;
-using Chat.BL.Servies;
 
 public class RequestLoggingMiddleware
 {
-    private readonly RequestDelegate _next;  
-    private readonly ILogService _logService;
-
-    public RequestLoggingMiddleware(RequestDelegate next,   ILogService logService)
+    public class CustomRequestLoggingMiddleware
     {
-        _next = next;  
-        _logService = logService;
-    }
+        private readonly RequestDelegate _next;
+        private readonly ILogger<CustomRequestLoggingMiddleware> _logger;
+        private readonly List<string> _logMessages;
+        List<LogResponse> lstLogResponses;
 
-    public async Task Invoke(HttpContext context)
-    {
-        // Log request details
-        string ipAddress = context.Connection.RemoteIpAddress.ToString();
-        string requestPath = context.Request.Path;
-        string requestBody = await GetRequestBody(context.Request);
-
-        // Fetch username from auth token
-        string username = await FetchUsernameFromToken(context.Request);
-
-        // Log the request details
-        LogRequest(ipAddress, requestPath, requestBody, username);
-
-        // Call the next middleware
-        await _next(context);
-    }
-
-    private async Task<string> GetRequestBody(HttpRequest request)
-    {
-        // Read the request body
-        using (StreamReader reader = new StreamReader(request.Body, Encoding.UTF8))
+        public CustomRequestLoggingMiddleware(RequestDelegate next, ILogger<CustomRequestLoggingMiddleware> logger)
         {
-            return await reader.ReadToEndAsync();
-        }
-    }
-
-    private async Task<string> FetchUsernameFromToken(HttpRequest request)
-    {
-        // Fetch the authentication token from the request headers
-        string token = request.Headers["Authorization"];
-
-        if (string.IsNullOrEmpty(token))
-        {
-            return string.Empty;
+            _next = next;
+            _logger = logger;
+            _logMessages = new List<string>();
+            lstLogResponses = new List<LogResponse>();
         }
 
-        // TODO: Implement logic to extract and decode the username from the token
-        // Example: Assuming the token format is "Bearer <token>", you can extract the token value using token.Split(' ')[1]
-        // Then, decode the token and extract the username from it
-
-        // Return the fetched username or an empty string if not found
-        return string.Empty;
-    }
-
-    private void LogRequest(string ipAddress, string requestPath, string requestBody, string username)
-    {
-        // Log the request details to your preferred logging mechanism
-        // You can use any logging framework such as Serilog, NLog, or log directly to a file or database
-
-        string logMessage = $"IP: {ipAddress} | Request Path: {requestPath} | Request Body: {requestBody} | Username: {username} | Time: {DateTime.UtcNow}";
-         
-        // Save the log to the Logs table using your preferred ORM or database access method
-        var log = new Log
+        public async Task InvokeAsync(HttpContext context)
         {
-            IpAddress = ipAddress,
-            RequestPath = requestPath,
-            RequestBody = requestBody,
-            Username = username,
-            Timestamp = DateTime.UtcNow
-        };
+            // Enable buffering to capture the request body
+            context.Request.EnableBuffering();
+            LogResponse logResponse = new LogResponse();
 
-        _logService.AddLogs(log); 
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString();
+            logResponse.IPOfCaller = ipAddress;
+            logResponse.UserName = "";
+
+            DateTime dateTime = DateTime.Now;
+            DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+            logResponse.TimeOfCall = dateTimeOffset.ToUnixTimeSeconds();
+
+            // Log the request information
+            var logMessage = $"Request: {context.Request.Method} {context.Request.Path} {context.Request.QueryString}";
+            _logMessages.Add(logMessage);
+
+            logResponse.Method = context.Request.Method;
+            logResponse.Path = context.Request.Path;
+            logResponse.QueryString = context.Request.QueryString;
+
+            // Read and log the request body if present
+            string requestBody = await GetRequestBodyAsync(context.Request);
+
+            logResponse.RequestBody = requestBody;
+
+            if (!string.IsNullOrEmpty(requestBody))
+            {
+                var requestBodyLog = $"Request Body: {requestBody}";
+                _logMessages.Add(requestBodyLog);
+            }
+
+            // Store the values in the HttpContext
+            lstLogResponses.Add(logResponse);
+            context.Items["logMessages"] = _logMessages;
+            context.Items["lstLogResponses"] = lstLogResponses;
+
+            // Call the next middleware in the pipeline
+            await _next(context);
+        }
+
+        private async Task<dynamic> GetRequestBodyAsync(HttpRequest request)
+        {
+
+            // Ensure the request body can be read multiple times
+            request.EnableBuffering();
+
+            // Read the request body stream
+            using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
+            var requestBody = await reader.ReadToEndAsync();
+
+            // Reset the request body position for subsequent middleware/components
+            request.Body.Position = 0;
+
+            return requestBody;
+        }
     }
-
-      
 }
+      
+
 
 

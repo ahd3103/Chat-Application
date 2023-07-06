@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,11 +28,9 @@ namespace Chat.BL.Servies
             return await _messageRepo.Get(messageId);
         }
 
-        public IEnumerable<Message> GetConversationMessages(string currentUser, string userId, DateTime? before, int count, string sort)
+        public IEnumerable<Message> GetConversationMessages(string userId, DateTime? before, int count, string sort)
         {
-            var query = _messageRepo.GetAll().Where(m =>
-                m.SenderId.Trim().ToLower() == currentUser.ToLower() &&
-                m.ReceiverId.Trim().ToLower() == userId.ToLower());
+            var query = _messageRepo.GetAll().Where(m => m.ReceiverId.Trim().ToLower() == userId.ToLower());
 
             if (before.HasValue)
             {
@@ -49,7 +48,18 @@ namespace Chat.BL.Servies
 
             return query.Take(count).ToList();
         }
+        public async Task<List<Message>> SearchConversations(string currentUser, string query)
+        {
+            query = query.ToLower().Trim();
 
+            var messages = _messageRepo.GetAll().Where(m =>
+                (m.SenderId.Trim().ToLower() == currentUser.ToLower() ||
+                m.ReceiverId.Trim().ToLower() != currentUser.ToLower()) &&
+                m.Content.ToLower().Contains(query)
+            ).ToList();
+
+            return messages;
+        }
         public async Task<Message> CreateMessage(Message message)
         {
             await _messageRepo.Insert(message);

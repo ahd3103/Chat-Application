@@ -1,16 +1,13 @@
 ﻿using Chat.BL.DTOs;
 using Chat.BL.Servies;
 using Chat.DL.Models;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Newtonsoft.Json;
-//using static Chat.BL.Helper.RequestLoggingMiddlewareExtensions;
 
 namespace Chat.PL.Controllers
 {
@@ -20,14 +17,15 @@ namespace Chat.PL.Controllers
     {
         private readonly IUserService _userRepository;
         private readonly IConfiguration _configuration;
-        private readonly ILogService _logService;
+        //private readonly ILogService _logService;
 
-        public UserController(IUserService userRepository, IConfiguration configuration, ILogService logService)
+        public UserController(IUserService userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _configuration = configuration;
-            _logService = logService;
+            //_logService = logService;
         }
+
         [Authorize]
         [HttpGet]
         [Route("/api/users")]
@@ -41,18 +39,6 @@ namespace Chat.PL.Controllers
                 Name = user.Name,
                 Email = user.Email
             });
-
-            await _logService.AddLogs(new Log
-            {
-                IpAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString(),
-                RequestPath = "GetAll User",
-                RequestBody = JsonConvert.SerializeObject(response),
-                Message = "User GetAll",
-                Timestamp = DateTime.UtcNow,
-                Level = "info",
-                Username = User.Identity.Name
-            });
-
             return Ok(response);
         }
 
@@ -68,8 +54,6 @@ namespace Chat.PL.Controllers
                 };
                 return BadRequest(errorResponse);
             }
-
-
 
             var existingUser = await _userRepository.GetByEmail(user.Email);
             if (existingUser != null)
@@ -124,7 +108,55 @@ namespace Chat.PL.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("GetLogs")]
+        public IActionResult logs([FromQuery] long? startDateTime = null, long? endDateTime = null)
+        {
+            try
+            {
+                if (startDateTime == null)
+                {
+                    DateTime dateTime = DateTime.Now.AddMinutes(5);
+                    DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+                    startDateTime = dateTimeOffset.ToUnixTimeSeconds();
+                }
+                else if (endDateTime == null)
+                {
+                    DateTime dateTime = DateTime.Now;
+                    DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
+                    endDateTime = dateTimeOffset.ToUnixTimeSeconds();
+                }
+                else if (startDateTime >= endDateTime)
+                {
+                    return BadRequest("startDateTime must be smaller than endDateTime");
+                }
 
+                // Retrieve the values from the HttpContext
+                var value = HttpContext.Items["logMessages"];
+
+                object v = HttpContext.Items["lstLogResponses"];
+                List<LogResponse> lstLogResponse1 = (List<LogResponse>)v;
+
+                if (lstLogResponse1 == null || lstLogResponse1.Count == 0)
+                {
+                    return NotFound();
+                }
+
+                List<LogResponse> logRes = lstLogResponse1.Where(log => log.TimeOfCall >= startDateTime && log.TimeOfCall <= endDateTime).ToList();
+
+                if (logRes.Count == 0)
+                {
+                    return NotFound();
+                }
+
+                return Ok(logRes);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
 
 
         private string GenerateJwtToken(Guid userId)
@@ -147,17 +179,5 @@ namespace Chat.PL.Controllers
 
             return tokenString;
         }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [Route("GoogleLogin")]
-        public IActionResult GoogleLogin()
-        {
-            string redirectUrl = Url.Action("GoogleResponse", "Account");
-            var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
-        }
-
     }
 }

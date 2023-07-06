@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -7,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static RequestLoggingMiddleware;
 
 namespace Chat.BL.Helper
 {
@@ -24,7 +26,7 @@ namespace Chat.BL.Helper
         public async Task Invoke(HttpContext context)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
+       
             if (token != null)
             {
                 await ValidateToken(context, token);
@@ -65,6 +67,7 @@ namespace Chat.BL.Helper
                 await context.Response.WriteAsync("Login failed due to incorrect credentials");
             }
         }
+
     }
 
 }
