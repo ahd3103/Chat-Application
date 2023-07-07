@@ -1,10 +1,12 @@
 ﻿
+using Chat.View.Controllers;
 using Chat.View.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using System.Security.Claims;
 
 namespace Chat.PL.Controllers
@@ -25,7 +27,7 @@ namespace Chat.PL.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]        
+        [AllowAnonymous]
         public IActionResult GoogleLogin()
         {
             string redirectUrl = Url.Action("GoogleResponse", "Account");
@@ -90,5 +92,7 @@ namespace Chat.PL.Controllers
             // You can redirect the user to an appropriate page or return an error response
             return BadRequest("Access denied.");
         }
+
     }
 }
+

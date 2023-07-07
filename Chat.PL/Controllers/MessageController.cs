@@ -3,10 +3,8 @@ using Chat.BL.Servies;
 using Chat.DL.DbContexts;
 using Chat.DL.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Chat.PL.Controllers
 {
@@ -63,8 +61,9 @@ namespace Chat.PL.Controllers
 
                 var createdMessage = await _messageRepository.CreateMessage(chatMessage);
                 chatMessage.User = null;
+
                 //Send the message to the receiver
-                // await _chatHub.Clients.All.SendAsync("ReceiveMessage", createdMessage);
+                 await _chatHub.Clients.All.SendAsync("ReceiveMessage", createdMessage);
 
                 return Ok(createdMessage);
             }

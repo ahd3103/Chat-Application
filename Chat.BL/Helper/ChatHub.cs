@@ -1,12 +1,6 @@
 ﻿using Chat.DL.DbContexts;
 using Chat.DL.Models;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chat.BL.Helper
 {

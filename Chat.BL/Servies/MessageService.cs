@@ -2,13 +2,6 @@
 using Chat.DL.Models;
 using Chat.DL.Repostiory;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chat.BL.Servies
 {

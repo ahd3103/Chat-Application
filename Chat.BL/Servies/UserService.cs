@@ -39,10 +39,13 @@ namespace Chat.BL.Servies
         public async Task<User> CheckUser(string email, string password)
         {
             password = EncryptionHelper.EncodePassword(password);
+
             // Find the user with the provided email and password
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
             user.Password = EncryptionHelper.DecodePassword(user.Password);
-            return user; // User and password match
+
+           // User and password match
+            return user; 
         }
     }
 }

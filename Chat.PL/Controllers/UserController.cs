@@ -17,13 +17,11 @@ namespace Chat.PL.Controllers
     {
         private readonly IUserService _userRepository;
         private readonly IConfiguration _configuration;
-        //private readonly ILogService _logService;
-
+        
         public UserController(IUserService userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
-            _configuration = configuration;
-            //_logService = logService;
+            _configuration = configuration;            
         }
 
         [Authorize]
