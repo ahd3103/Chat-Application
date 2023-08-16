@@ -1,4 +1,5 @@
-﻿using Chat.BL.Helper;
+﻿using Chat.BL.DTOs;
+using Chat.BL.Helper;
 using Chat.BL.Servies;
 using Chat.DL.DbContexts;
 using Chat.DL.Models;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Chat.PL.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class MessageController : ControllerBase
@@ -26,9 +28,9 @@ namespace Chat.PL.Controllers
             _messageRepository = messageRepository;
         }
 
-        [Authorize]
+
         [HttpPost("sendMessage")]
-        public async Task<IActionResult> SendMessage(string receiver, string message)
+        public async Task<IActionResult> SendMessage([FromBody] MessageBody message)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -41,7 +43,7 @@ namespace Chat.PL.Controllers
             var user = await _userRepository.Get(new Guid(sender));
 
             // Validation logic for receiver and message
-            if (string.IsNullOrEmpty(receiver) || string.IsNullOrEmpty(message))
+            if (string.IsNullOrEmpty(message.ReceiverId) || string.IsNullOrEmpty(message.Content))
             {
                 return BadRequest();
             }
@@ -52,9 +54,9 @@ namespace Chat.PL.Controllers
                 var chatMessage = new Message
                 {
                     SenderId = sender,
-                    ReceiverId = receiver,
+                    ReceiverId = message.ReceiverId,
                     Timestamp = timestamp,
-                    Content = message,
+                    Content = message.Content,
                     User = user
 
                 };
@@ -63,7 +65,7 @@ namespace Chat.PL.Controllers
                 chatMessage.User = null;
 
                 //Send the message to the receiver
-                 await _chatHub.Clients.All.SendAsync("ReceiveMessage", createdMessage);
+                await _chatHub.Clients.All.SendAsync("ReceiveMessage", createdMessage);
 
                 return Ok(createdMessage);
             }
@@ -73,14 +75,14 @@ namespace Chat.PL.Controllers
             }
         }
 
-        [Authorize]
-        [HttpPut("messages/{messageId}")]
-        public async Task<IActionResult> EditMessage(string messageId, [FromBody] string content)
+
+        [HttpPut("messages")]
+        public async Task<IActionResult> EditMessage([FromBody] MessageBody msg)
         {
             var sender = User.Identity.Name;
 
             // Convert the messageId string to Guid
-            if (!Guid.TryParse(messageId, out Guid messageIdGuid))
+            if (!Guid.TryParse(msg.MessageId, out Guid messageIdGuid))
             {
                 return BadRequest(new { error = "Invalid messageId" });
             }
@@ -99,7 +101,7 @@ namespace Chat.PL.Controllers
             }
 
             // Update the message content
-            message.Content = content;
+            message.Content = msg.Content;
             var isUpdated = await _messageRepository.UpdateMessage(message);
 
             if (isUpdated)
@@ -112,7 +114,7 @@ namespace Chat.PL.Controllers
             }
         }
 
-        [Authorize]
+
         [HttpDelete("messages/{messageId}")]
         public async Task<IActionResult> DeleteMessage(string messageId)
         {
@@ -151,37 +153,32 @@ namespace Chat.PL.Controllers
         }
 
 
-        [Authorize]
+
         [HttpGet("conversations/{userId}")]
-        public async Task<IActionResult> GetConversation(string userId, DateTime? before = null, int count = 20, string sort = "asc")
+        public async Task<IActionResult> GetConversation(string userId)
         {
             try
             {
                 var currentUser = User.Identity.Name?.Trim();
 
                 // Check if the current user has access to retrieve the conversation
-                if (!string.Equals(currentUser, userId, StringComparison.OrdinalIgnoreCase))
+                //if (!string.Equals(currentUser, userId, StringComparison.OrdinalIgnoreCase))
+                //{
+                //    return Unauthorized();
+                //}
+
+                if (!User.Identity.IsAuthenticated)
                 {
                     return Unauthorized();
                 }
 
                 // Get the conversation messages from the repository
-                var messages = _messageRepository.GetConversationMessages(userId, before, count, sort);
+                var messages = _messageRepository.GetConversationMessages(userId, currentUser, DateTime.Now, 10, "asc");
 
                 // Prepare the response body
-                var response = new
-                {
-                    messages = messages.Select(m => new
-                    {
-                        id = m.Id.ToString(),
-                        senderId = m.SenderId,
-                        receiverId = m.ReceiverId,
-                        content = m.Content,
-                        timestamp = m.Timestamp
-                    })
-                };
 
-                return Ok(response);
+
+                return Ok(messages);
             }
             catch (Exception ex)
             {
@@ -190,7 +187,46 @@ namespace Chat.PL.Controllers
 
         }
 
-        [Authorize]
+        //[HttpGet("conversations/{userId}")]
+        //public async Task<IActionResult> GetConversation(string userId, DateTime? before = null, int count = 20, string sort = "asc")
+        //{
+        //    try
+        //    {
+        //        var currentUser = User.Identity.Name?.Trim();
+
+        //        // Check if the current user has access to retrieve the conversation
+        //        if (!string.Equals(currentUser, userId, StringComparison.OrdinalIgnoreCase))
+        //        {
+        //            return Unauthorized();
+        //        }
+
+        //        // Get the conversation messages from the repository
+        //        var messages = _messageRepository.GetConversationMessages(userId, before, count, sort);
+
+        //        // Prepare the response body
+        //        var response = new
+        //        {
+        //            messages = messages.Select(m => new
+        //            {
+        //                id = m.Id.ToString(),
+        //                senderId = m.SenderId,
+        //                receiverId = m.ReceiverId,
+        //                content = m.Content,
+        //                timestamp = m.Timestamp
+        //            })
+        //        };
+
+        //        return Ok(response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+
+        //}
+
+
+
         [HttpGet("search")]
         public async Task<IActionResult> SearchConversations(string query)
         {

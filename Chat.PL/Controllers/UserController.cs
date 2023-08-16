@@ -107,25 +107,24 @@ namespace Chat.PL.Controllers
         }
 
         [Authorize]
-        [HttpGet]
-        [Route("GetLogs")]
-        public IActionResult logs([FromQuery] long? startDateTime = null, long? endDateTime = null)
+        [HttpPost("logs")] 
+        public async Task<IActionResult> logs([FromBody] ReqLog reqLog)
         {
             try
             {
-                if (startDateTime == null)
+                if (reqLog.StartTime == null)
                 {
                     DateTime dateTime = DateTime.Now.AddMinutes(5);
                     DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
-                    startDateTime = dateTimeOffset.ToUnixTimeSeconds();
+                    reqLog.StartTime = dateTimeOffset.ToUnixTimeSeconds();
                 }
-                else if (endDateTime == null)
+                else if (reqLog.EndTime == null)
                 {
                     DateTime dateTime = DateTime.Now;
                     DateTimeOffset dateTimeOffset = new DateTimeOffset(dateTime);
-                    endDateTime = dateTimeOffset.ToUnixTimeSeconds();
+                    reqLog.EndTime = dateTimeOffset.ToUnixTimeSeconds();
                 }
-                else if (startDateTime >= endDateTime)
+                else if (reqLog.StartTime >= reqLog.EndTime)
                 {
                     return BadRequest("startDateTime must be smaller than endDateTime");
                 }
@@ -138,14 +137,14 @@ namespace Chat.PL.Controllers
 
                 if (lstLogResponse1 == null || lstLogResponse1.Count == 0)
                 {
-                    return NotFound();
+                    return Ok(null); 
                 }
 
-                List<LogResponse> logRes = lstLogResponse1.Where(log => log.TimeOfCall >= startDateTime && log.TimeOfCall <= endDateTime).ToList();
+                List<LogResponse> logRes = lstLogResponse1.Where(log => log.TimeOfCall >= reqLog.StartTime && log.TimeOfCall <= reqLog.EndTime).ToList();
 
                 if (logRes.Count == 0)
                 {
-                    return NotFound();
+                    return Ok(null);
                 }
 
                 return Ok(logRes);

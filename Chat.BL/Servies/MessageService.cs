@@ -21,26 +21,50 @@ namespace Chat.BL.Servies
             return await _messageRepo.Get(messageId);
         }
 
-        public IEnumerable<Message> GetConversationMessages(string userId, DateTime? before, int count, string sort)
+        public IEnumerable<Message> GetConversationMessages(string userId, string currentUser, DateTime? before, int count, string sort)
         {
-            var query = _messageRepo.GetAll().Where(m => m.ReceiverId.Trim().ToLower() == userId.ToLower());
+            var query = _messageRepo.GetAll().Where(m => (m.ReceiverId.Trim().ToLower() == userId.ToLower() && m.SenderId == currentUser) || m.SenderId.Trim().ToLower() == userId.ToLower() && m.ReceiverId == currentUser);
 
-            if (before.HasValue)
-            {
-                query = query.Where(m => m.Timestamp < before.Value);
-            }
+            //if (before.HasValue)
+            //{
+            //    query = query.Where(m => m.Timestamp < before.Value);
+            //}
 
-            if (sort.ToLower() == "desc")
-            {
-                query = query.OrderByDescending(m => m.Timestamp);
-            }
-            else
-            {
-                query = query.OrderBy(m => m.Timestamp);
-            }
+            //if (sort.ToLower() == "desc")
+            //{
+            //    query = query.OrderByDescending(m => m.Timestamp);
+            //}
+            //else
+            //{
+            //    query = query.OrderBy(m => m.Timestamp);
+            //}
 
             return query.Take(count).ToList();
         }
+
+        //public IEnumerable<Message> GetConversationMessages(string userId, DateTime? before, int count, string sort)
+        //{
+        //    var query = _messageRepo.GetAll().Where(m => m.ReceiverId.Trim().ToLower() == userId.ToLower() || m.SenderId.Trim().ToLower() == userId.ToLower());
+        //   // IQueryable<Message> query = _chatHubContext.Get.Where(m => m.Receiver.Trim().ToLower() == userId.ToLower());
+        //    //if (before.HasValue)
+        //    //{
+        //    //    query = query.Where(m => m.Timestamp <= before.Value);
+        //    //}
+
+        //    //if (sort.ToLower() == "desc")
+        //    //{
+        //    //    query = query.OrderByDescending(m => m.Timestamp);
+        //    //}
+        //    //else
+        //    //{
+        //    //    query = query.OrderBy(m => m.Timestamp);
+        //    //}
+
+        //    return query.Take(count).ToList();
+        //}
+
+
+
         public async Task<List<Message>> SearchConversations(string currentUser, string query)
         {
             query = query.ToLower().Trim();

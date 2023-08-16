@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.BL", "Chat.BL\Chat.BL.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chat.DL", "Chat.DL\Chat.DL.csproj", "{D892CC5F-0723-4933-8A2D-CA613CA7ADA0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chat.View", "Chat.View\Chat.View.csproj", "{2F03E673-F6DD-4EF5-95EA-C7282400A2F1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{D892CC5F-0723-4933-8A2D-CA613CA7ADA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D892CC5F-0723-4933-8A2D-CA613CA7ADA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D892CC5F-0723-4933-8A2D-CA613CA7ADA0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F03E673-F6DD-4EF5-95EA-C7282400A2F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F03E673-F6DD-4EF5-95EA-C7282400A2F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F03E673-F6DD-4EF5-95EA-C7282400A2F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F03E673-F6DD-4EF5-95EA-C7282400A2F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
